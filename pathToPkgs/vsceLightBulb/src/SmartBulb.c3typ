@@ -1,0 +1,100 @@
+/*
+ * Copyright 2009-2025 C3 AI (www.c3.ai). All Rights Reserved.
+ * This material, including without limitation any software, is the confidential trade secret and proprietary
+ * information of C3 and its licensors. Reproduction, use and/or distribution of this material in any form is
+ * strictly prohibited except as set forth in a written license agreement with C3 and/or its authorized distributors.
+ * This material may be covered by one or more patents or pending patent applications.
+ */
+
+/**
+ * A single light bulb capable of measuring various properties, including power consumption, light output, etc.
+ */
+entity type SmartBulb extends LightBulb mixes FeatureEvaluatable type key 'SMRT_BLB' {
+
+  /**
+   * This bulb's historical measurements.
+   */
+  bulbMeasurements: [SmartBulbMeasurementSeries](smartBulb)
+
+  /**
+   * This bulb's historical predictions.
+   */
+  @db(order='descending(timestamp)')
+  bulbPredictions: [SmartBulbPrediction](smartBulb)
+
+  /**
+   * This bulb's latest prediction.
+   */
+  currentPrediction: SmartBulbPrediction stored calc "bulbPredictions[0]"
+
+  /**
+   * This bulb's historical events.
+   */
+  bulbEvents: [SmartBulbEvent](smartBulb)
+
+  /**
+   * The latitude of this bulb.
+   */
+  latitude: double
+
+  /**
+   * The longitude of this bulb.
+   */
+  longitude: double
+
+  /**
+   * The unit of measurement used for this bulb's light output measurements.
+   */
+  lumensUOM: Unit
+
+  /**
+   * The unit of measurement used for this bulb's power consumption measurements.
+   */
+  powerUOM: Unit
+
+  /**
+   * The unit of measurement used for this bulb's temperature measurements.
+   */
+  temperatureUOM: Unit
+
+  /**
+   * The unit of measurement used for this bulb's voltage measurements.
+   */
+  voltageUOM: Unit
+
+  /**
+   * A SmartBulb is associated to a {@link Fixture} through a SmartBulbToFixtureRelation.
+   */
+  @db(order='descending(start), descending(end)')
+  fixtureHistory: [SmartBulbToFixtureRelation](from)
+
+  /**
+   * The current Fixture to which this bulb is attached.
+   */
+  currentFixture: Fixture stored calc 'fixtureHistory[0].(end == null).to'
+
+  /**
+   * Method to determine the expected lumens of a light bulb
+   */
+  expectedLumens: function(wattage: !decimal, bulbType: !string): double js-server
+
+  /**
+   * Returns the life span of this smartBulb
+   */
+  lifeSpanInYears: function(bulbId: string): double js-server
+
+  /**
+   * Returns the average life span of all smartBulbs.
+   */
+  averageLifeSpan: function(): double js-server
+
+  /**
+   * Returns the id of the smart bulb with the shortest recorded life span to date.
+   */
+  shortestLifeSpanBulb: function(): string js-server
+
+  /**
+   * Returns the id of the smart bulb with the longest recorded life span to date.
+   */
+  longestLifeSpanBulb: function(): string js-server
+}
